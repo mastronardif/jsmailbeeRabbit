@@ -21,10 +21,10 @@ amqp.connect(CLOUDAMQP_URL, function(err, conn) {
 
     setInterval(function() {
         mySend(ch, q, 'TEST z ');
-      }, 3000);
+      }, 1000);
   });
 
-  setTimeout(function() { conn.close(); process.exit(0) }, 500);
+  setTimeout(function() { conn.close(); process.exit(0) },10000);
 });
 console.log('++++++++++++++++++++++++++++++');
 var cnt=1;
