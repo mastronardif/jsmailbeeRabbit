@@ -21,7 +21,7 @@ amqp.connect(CLOUDAMQP_URL, function(err, conn) {
 		console.log("0themsg=", themsg);
         themsg = themsg.replace(/\s+/g, '');
 		console.log("1themsg=", themsg);
-        var myReg = /<tag>(.*?)<\/tag>/;
+        var myReg = /<tags>(.*?)<\/tags>/;
         //var myReg = /(?:^|\s)format_(.*?)(?:\s|$)/;              
         var match = myReg.exec(themsg);
 		 console.log("match", match);
@@ -35,7 +35,7 @@ amqp.connect(CLOUDAMQP_URL, function(err, conn) {
 			console.log("Read takes some time wait 5 secs. . . . . .", Date.now());
 			setTimeout(function() {
 				console.log(". . . . . . OK now Ping.", Date.now());
-				postmanCodePing();	
+				postmanCodeReplyMail();	
 			}, 7 * 1000);		
         }
       }
@@ -84,7 +84,7 @@ tagurl: url }));
 req.end();	
 }
 
-function postmanCodePing()
+function postmanCodeReplyMail()
 {
   var qs = require("querystring");
   var http = require("http");
@@ -93,7 +93,7 @@ function postmanCodePing()
     "method": "POST",
     "hostname": "localhost",
     "port": "3000",
-    "path": "/ping",
+    "path": "/replyMail",
     "headers": {
       "left": "right",
       "content-type": "application/x-www-form-urlencoded",
