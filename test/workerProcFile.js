@@ -2,11 +2,14 @@
 
 var amqp = require('amqplib/callback_api');
 var CLOUDAMQP_URL = process.env.CLOUDAMQP_URL || 'wtf';
+var CLOUDAMQP_QPROCFILE = process.env.CLOUDAMQP_QPROCFILE || 'task_procfile';
+//var CLOUDAMQP_QTASKWORKER = process.env.CLOUDAMQP_QPROCFILE || 'task_queue';
+
 const { spawn } = require('child_process');
 
 amqp.connect(CLOUDAMQP_URL, function(err, conn) {
   conn.createChannel(function(err, ch) {
-    var q = 'task_queue';
+    var q =  CLOUDAMQP_QPROCFILE;
 
     ch.assertQueue(q, {durable: true});
     ch.prefetch(1);
@@ -31,11 +34,11 @@ amqp.connect(CLOUDAMQP_URL, function(err, conn) {
 			//url.replaceAll("^\\s+|\\s+$", "")
             console.log("+++++++++++\t", url);
             // Do work.  Make this sequence if you can. Cheezy
-			postmanCodeRead(url);						
-			console.log("Read takes some time wait 10 secs. . . . . .", (new Date()).toISOString());
+			//postmanCodeRead(url);						
+			console.log("Read takes some time wait 20 secs. . . . . .", (new Date()).toISOString());
 			setTimeout(function() {
 				console.log(". . . . . . OK now Ping.", (new Date()).toISOString())
-				postmanCodeReplyMail();	
+				//postmanCodeReplyMail();	
 			}, 10 * 1000);		
         }
       }
@@ -60,8 +63,8 @@ var options = {
   "path": "/read",
   "headers": {
     "content-type": "application/x-www-form-urlencoded",
-    "cache-control": "no-cache"
-    //"postman-token": "5fb9e299-2712-b68e-615c-10763edd7030"
+    "cache-control": "no-cache",
+    "postman-token": "5fb9e299-2712-b68e-615c-10763edd7030"
   }
 };
 
@@ -75,9 +78,6 @@ var req = http.request(options, function (res) {
   res.on("end", function () {
     var body = Buffer.concat(chunks);
     console.log("END", body.toString());
-	
-	// post file ID to Rabbit.
-	
   });
 });
 

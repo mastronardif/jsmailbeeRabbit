@@ -3,10 +3,13 @@
 var amqp = require('amqplib/callback_api');
 var CLOUDAMQP_URL = process.env.CLOUDAMQP_URL || 'wtf';
 const { spawn } = require('child_process');
+var CLOUDAMQP_QTASKWORKER = process.env.CLOUDAMQP_QTASKWORKER || 'task_queue';
+var CLOUDAMQP_QPROCFILE   = process.env.CLOUDAMQP_QPROCFILE   || 'task_procfile';
 
 amqp.connect(CLOUDAMQP_URL, function(err, conn) {
   conn.createChannel(function(err, ch) {
-    var q = 'task_queue';
+    var q  = CLOUDAMQP_QTASKWORKER;
+	var q2 = CLOUDAMQP_QPROCFILE; 
 
     ch.assertQueue(q, {durable: true});
     ch.prefetch(1);
@@ -20,35 +23,65 @@ amqp.connect(CLOUDAMQP_URL, function(err, conn) {
         var themsg = msg.content.toString();
 		console.log("0themsg=", themsg);
         themsg = themsg.replace(/\s+/g, '');
-		console.log("1themsg=", themsg);
+		console.log("themsg=", themsg);
         var myReg = /<tags>(.*?)<\/tags>/;
         //var myReg = /(?:^|\s)format_(.*?)(?:\s|$)/;              
         var match = myReg.exec(themsg);
-		 console.log("match", match);
+		console.log("match", match);
         if (match)
         {
             var url = match[1].trim();
 			//url.replaceAll("^\\s+|\\s+$", "")
             console.log("+++++++++++\t", url);
             // Do work.  Make this sequence if you can. Cheezy
-			postmanCodeRead(url);						
-			console.log("Read takes some time wait 10 secs. . . . . .", (new Date()).toISOString());
-			setTimeout(function() {
-				console.log(". . . . . . OK now Ping.", (new Date()).toISOString())
-				postmanCodeReplyMail();	
-			}, 10 * 1000);		
+			//postmanCodeRead(url);	
+			var fileID = aaaaa_Read(url);
+			if (fileID.length > 10) {
+				// post to taskQueue(x, fileID);
+				console.log("post to taskQueue(x, fileID);");
+				mySendToQ(ch, q2, `process fileID(${fileID})`);
+			}
+			
+			// console.log("Read takes some time wait 10 secs. . . . . .", (new Date()).toISOString());
+			// setTimeout(function() {
+				// console.log(". . . . . . OK now Ping.", (new Date()).toISOString())
+				// postmanCodeReplyMail();	
+			// }, 10 * 1000);		
         }
       }
 
       setTimeout(function() {
-        console.log(" [y] Done\n Waiting. . . . . .");
+        console.log(" [y] Done\n Waiting. . . . . . ack");
         ch.ack(msg);
       }, .5 * 1000);
     }, {noAck: false});
   });
 });
 
-function postmanCodeRead(url)
+var cnt=0;
+function mySendToQ(ch, q, msg) {
+    //var msg = "mySend:";
+    var event = new Date(Date.now());
+    var now = event.toISOString()
+    var ts = event.toLocaleTimeString()+' | '+event.getUTCMilliseconds();
+    msg = '[' + cnt++ +'] '+now+'| '+msg;
+	console.log("\t=====> ", msg);
+
+    ch.sendToQueue(q, new Buffer(msg+".aaa"), {persistent: true});
+
+}
+
+function aaaaa_Read(url) {
+	setTimeout(function() {
+		console.log(". . . . . .aaaaa_Read.", (new Date()).toISOString());
+	}, 10 * 1000);
+	
+	var id = `id-${cnt}-${url}`;
+	return id ;
+}
+
+
+function REMOVEME___postmanCodeRead(url)
 {
 var qs = require("querystring");
 var http = require("http");
@@ -81,8 +114,7 @@ var req = http.request(options, function (res) {
   });
 });
 
-req.write(qs.stringify({ left: 'right',
-tagurl: url }));
+req.write(qs.stringify({ left: 'right', tagurl: url }));
   //tagurl: 'https://www.nytimes.com/section/opinion' }));
 req.end();	
 }
