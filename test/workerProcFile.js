@@ -8,6 +8,44 @@ var outputType = {outType: 'file', path: './uploads/'};
 
 const { spawn } = require('child_process');
 
+
+
+global.config = {};//for Heroku require('./config/default.json');
+const KconfigFN = './config/default.json';
+if (fs.existsSync(KconfigFN)) {
+  global.config = require(KconfigFN);
+}
+else {
+  global.config = {};
+  global.config.Mg = {
+    "api_key": (process.env.Mg__api_key || 'wtf'),
+    "domain": "joeschedule.mailgun.org"  
+  };
+  global.config.Admin = {
+  "mail": "mastronardif@gmail.com",
+  "subject": "jsmailbee test 101.",
+  "fromAdmin": "mastronardif@gmail.com",
+  "toAdmin": "mastronardif@gmail.com"
+  };
+}
+
+var mg = global.config.Mg;
+var admin = global.config.Admin;
+
+var mailgun = require('mailgun-js')({apiKey: mg.api_key, domain: mg.domain});
+
+//console.log(global.config); 
+
+var g_test = {};
+g_test.useMG = true;
+
+
+
+
+
+
+
+
 amqp.connect(CLOUDAMQP_URL, function(err, conn) {
   conn.createChannel(function(err, ch) {
     var q =  CLOUDAMQP_QPROCFILE;
@@ -55,45 +93,51 @@ function processFile(id)
 	
 	var buffer;
 	buffer = fs.readFileSync(fn,'utf8');
-	//postmanCodeReplyMail
+	mailFile(fn);
 	
-	console.log(buffer);
-	fs.unlinkSync(fn);
+	console.log(buffer);	
 	
 	return;
 }
 
-function postmanCodeReplyMail()
-{
-  var qs = require("querystring");
-  var http = require("http");
-  
-  var options = {
-    "method": "POST",
-    "hostname": "localhost",
-    "port": "3000",
-    "path": "/replyMail",
-    "headers": {
-      "left": "right",
-      "content-type": "application/x-www-form-urlencoded",
-      "cache-control": "no-cache",
-      "postman-token": "db058edc-df7b-8326-dec4-5bad24d6d305"
-    }
+function mailFile(fn) {
+  //var filename = "wtf.jpg";
+  // for each file
+  //var attch = new mailgun.Attachment({data: file, filename: filename});
+
+  //console.log('\n\n mailStore file = \n', file); 
+
+  var data = {
+    from: admin.fromAdmin,
+    to: admin.toAdmin,
+    subject: admin.subject,
+    //text: 'Testing some Mailgun awesomness!',
+    //html: htm,
+    //attachment: file
+    //attachment: attch //[attch,attch] 
+    //inline: file
   };
-  
-  var req = http.request(options, function (res) {
-    var chunks = [];
-  
-    res.on("data", function (chunk) {
-      chunks.push(chunk);
-    });
-  
-    res.on("end", function () {
-      var body = Buffer.concat(chunks);
-      console.log(body.toString());
-    });
+
+
+
+var html = fs.readFileSync(fn).toString(); 
+//console.log("html=", html);
+//
+if (g_test.useMG) {
+  data.html = html || 'Something went wrong. :( with the fs.read ,aybe a timing issue....';
+
+  mailgun.messages().send(data, function (error, body) {
+    if (error) {
+      console.log('error = ', error);
+    }
+    else {
+      console.log(body);
+	  fs.unlinkSync(fn);
+    }
   });
-  
-  req.write(qs.stringify({ left: 'right' }));
-  req.end();
+} // end debug
+else {
+    console.log('not doing MG\n'+html);
+}
+
 }
