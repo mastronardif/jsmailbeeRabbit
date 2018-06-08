@@ -1,8 +1,9 @@
 #!/usr/bin/env node
+var readHelp       = require('../../jsmailbee/read/readHelpers');
 
 var amqp = require('amqplib/callback_api');
 var CLOUDAMQP_URL = process.env.CLOUDAMQP_URL || 'wtf';
-const { spawn } = require('child_process');
+//const { spawn } = require('child_process');
 var CLOUDAMQP_QTASKWORKER = process.env.CLOUDAMQP_QTASKWORKER || 'task_queue';
 var CLOUDAMQP_QPROCFILE   = process.env.CLOUDAMQP_QPROCFILE   || 'task_procfile';
 
@@ -35,12 +36,17 @@ amqp.connect(CLOUDAMQP_URL, function(err, conn) {
             console.log("+++++++++++\t", url);
             // Do work.  Make this sequence if you can. Cheezy
 			//postmanCodeRead(url);	
-			var fileID = aaaaa_Read(url);
-			if (fileID.length > 10) {
-				// post to taskQueue(x, fileID);
-				console.log("post to taskQueue(x, fileID);");
-				mySendToQ(ch, q2, `process fileID(${fileID})`);
-			}
+			//var fileID = 
+			callreadHelp_test22(url, function myCB(err, fileID) {
+										console.log(`\n\t * * * * * *  myCB(${fileID})\n`);
+										if (err) throw err; // Check for the error and throw if it exists.
+										if (fileID.length > 10) {
+											// post to taskQueue(x, fileID);
+											console.log("post to taskQueue(x, fileID);");
+											mySendToQ(ch, q2, `<tags>${fileID}<\/tags>`);
+										}
+									}		
+			);
 			
 			// console.log("Read takes some time wait 10 secs. . . . . .", (new Date()).toISOString());
 			// setTimeout(function() {
@@ -67,18 +73,24 @@ function mySendToQ(ch, q, msg) {
     msg = '[' + cnt++ +'] '+now+'| '+msg;
 	console.log("\t=====> ", msg);
 
-    ch.sendToQueue(q, new Buffer(msg+".aaa"), {persistent: true});
+    ch.sendToQueue(q, new Buffer(msg), {persistent: true});
 
 }
 
-function aaaaa_Read(url) {
-	setTimeout(function() {
-		console.log(". . . . . .aaaaa_Read.", (new Date()).toISOString());
-	}, 10 * 1000);
+function callreadHelp_test22(url, myCB) {
 	
-	var id = `id-${cnt}-${url}`;
+    console.log(`\t\t callreadHelp_test22(${url}, cb)`);
+    
+    var fileid = readHelp.test22(url, myCB);
+	
+	// setTimeout(function() {
+		// console.log(". . . . . .callreadHelp_test.", (new Date()).toISOString());
+	// }, 10 * 1000);
+	
+	var id = `id-${fileid}--${cnt}-${url}`;
 	return id ;
 }
+
 
 
 function REMOVEME___postmanCodeRead(url)

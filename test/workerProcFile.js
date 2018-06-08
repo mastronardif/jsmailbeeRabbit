@@ -1,9 +1,10 @@
 #!/usr/bin/env node
-
+var fs = require('fs');
 var amqp = require('amqplib/callback_api');
 var CLOUDAMQP_URL = process.env.CLOUDAMQP_URL || 'wtf';
 var CLOUDAMQP_QPROCFILE = process.env.CLOUDAMQP_QPROCFILE || 'task_procfile';
 //var CLOUDAMQP_QTASKWORKER = process.env.CLOUDAMQP_QPROCFILE || 'task_queue';
+var outputType = {outType: 'file', path: './uploads/'};
 
 const { spawn } = require('child_process');
 
@@ -30,19 +31,13 @@ amqp.connect(CLOUDAMQP_URL, function(err, conn) {
 		 console.log("match", match);
         if (match)
         {
-            var url = match[1].trim();
-			//url.replaceAll("^\\s+|\\s+$", "")
-            console.log("+++++++++++\t", url);
+            var id = match[1].trim();
+            console.log("+++++++++++\t", id);
             // Do work.  Make this sequence if you can. Cheezy
-			//postmanCodeRead(url);						
-			console.log("Read takes some time wait 20 secs. . . . . .", (new Date()).toISOString());
-			setTimeout(function() {
-				console.log(". . . . . . OK now Ping.", (new Date()).toISOString())
-				//postmanCodeReplyMail();	
-			}, 10 * 1000);		
+			processFile(id);						
         }
       }
-
+	  
       setTimeout(function() {
         console.log(" [y] Done\n Waiting. . . . . .");
         ch.ack(msg);
@@ -51,40 +46,21 @@ amqp.connect(CLOUDAMQP_URL, function(err, conn) {
   });
 });
 
-function postmanCodeRead(url)
+function processFile(id)
 {
-var qs = require("querystring");
-var http = require("http");
-
-var options = {
-  "method": "POST",
-  "hostname": "localhost",
-  "port": "3000",
-  "path": "/read",
-  "headers": {
-    "content-type": "application/x-www-form-urlencoded",
-    "cache-control": "no-cache",
-    "postman-token": "5fb9e299-2712-b68e-615c-10763edd7030"
-  }
-};
-
-var req = http.request(options, function (res) {
-  var chunks = [];
-
-  res.on("data", function (chunk) {
-    chunks.push(chunk);
-  });
-
-  res.on("end", function () {
-    var body = Buffer.concat(chunks);
-    console.log("END", body.toString());
-  });
-});
-
-req.write(qs.stringify({ left: 'right',
-tagurl: url }));
-  //tagurl: 'https://www.nytimes.com/section/opinion' }));
-req.end();	
+	console.log(`\t process file ${id}`);
+	
+	var fn = `${outputType.path}${id}.html`;
+	console.log(fn);
+	
+	var buffer;
+	buffer = fs.readFileSync(fn,'utf8');
+	//postmanCodeReplyMail
+	
+	console.log(buffer);
+	fs.unlinkSync(fn);
+	
+	return;
 }
 
 function postmanCodeReplyMail()
