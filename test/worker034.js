@@ -25,7 +25,7 @@ amqp.connect(CLOUDAMQP_URL, function(err, conn) {
 		console.log("0themsg=", themsg);
         themsg = themsg.replace(/\s+/g, '');
 		console.log("themsg=", themsg);
-        var myReg = /<tags>(.*?)<\/tags>/;
+        var myReg = /<tags>(.*?)<\/tags>/i;
         //var myReg = /(?:^|\s)format_(.*?)(?:\s|$)/;              
         var match = myReg.exec(themsg);
 		console.log("match", match);

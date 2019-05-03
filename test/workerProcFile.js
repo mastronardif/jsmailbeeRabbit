@@ -13,7 +13,11 @@ const { spawn } = require('child_process');
 global.config = {};//for Heroku require('./config/default.json');
 const KconfigFN = './config/default.json';
 if (fs.existsSync(KconfigFN)) {
-  global.config = require(KconfigFN);
+  global.config = JSON.parse(fs.readFileSync(KconfigFN,'utf8') ); // require(KconfigFN));
+
+  //console.log(`${KconfigFN}`);
+  console.log(global.config); 
+  //return;
 }
 else {
   global.config = {};
@@ -29,9 +33,13 @@ else {
   };
 }
 
-var mg = global.config.Mg;
-var admin = global.config.Admin;
 
+var mg = global.config.Mg;
+console.log(`${global.config}`); 
+console.log(`mg =============== ${mg.api_key}`); 
+
+var admin = global.config.Admin;
+console.log(`mg= ${global.config.Mg}`);
 var mailgun = require('mailgun-js')({apiKey: mg.api_key, domain: mg.domain});
 
 //console.log(global.config); 
@@ -92,8 +100,15 @@ function processFile(id)
 	console.log(fn);
 	
 	var buffer;
-	buffer = fs.readFileSync(fn,'utf8');
-	mailFile(fn);
+  buffer = fs.readFileSync(fn,'utf8');
+  if (false) {
+    mailFile(fn);
+  } else {
+    // write file.
+    var ext2 = ".OUT.txt";
+    fs.renameSync(fn, `${fn}.2.htm`);
+  }
+	
 	
 	console.log(buffer);	
 	

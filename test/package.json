@@ -9,6 +9,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "amqplib": "^0.5.2"
+    "amqplib": "^0.5.3",
+    "mailgun-js": "^0.22.0"
   }
 }
