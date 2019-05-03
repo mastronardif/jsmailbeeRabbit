@@ -42,7 +42,7 @@ amqp.connect(CLOUDAMQP_URL, function(err, conn) {
 										if (err) throw err; // Check for the error and throw if it exists.
 										if (fileID.length > 10) {
 											// post to taskQueue(x, fileID);
-											console.log("post to taskQueue(x, fileID);");
+											console.log(`post to ${q2}: <tags>${fileID}<\/tags>`);
 											mySendToQ(ch, q2, `<tags>${fileID}<\/tags>`);
 										}
 									}		
